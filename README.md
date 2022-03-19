@@ -1,16 +1,20 @@
 # notes_app
 
-A new Flutter project.
+A note taking app developed using Flutter during Flutter Festival
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+1. Add notes
+2. View notes
+3. Edit notes
+4. Delete notes
+5. Search notes
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+## App UI Design link
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+https://www.figma.com/file/KhwKmOZfrvXjVXLhKQHIpc/Notes-app?node-id=0%3A1
+
+## Video link
+
+### Day 1: https://www.youtube.com/watch?v=OWhyV2eBtuU
