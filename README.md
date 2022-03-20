@@ -18,3 +18,5 @@ https://www.figma.com/file/KhwKmOZfrvXjVXLhKQHIpc/Notes-app?node-id=0%3A1
 ## Video link
 
 ### Day 1: https://www.youtube.com/watch?v=OWhyV2eBtuU
+
+### Day 2: https://youtu.be/ri4wwSH1ItM
