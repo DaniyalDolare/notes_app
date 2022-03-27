@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notes_app/models/note.dart';
 import 'package:notes_app/views/pages/add_note_page.dart';
+import 'package:notes_app/views/pages/note_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -12,13 +13,29 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final searchController = TextEditingController();
   final searchFocusNode = FocusNode();
-  List<Note> notes = [
+  bool isSearching = false;
+  List<Note> allNotes = [
     Note(title: "Note 1", note: "This is note 1", updatedAt: DateTime.now()),
     Note(title: "Note 2", note: "This is note 2", updatedAt: DateTime.now()),
   ];
 
   @override
   Widget build(BuildContext context) {
+    List<Note> notes;
+    if (isSearching) {
+      notes = allNotes
+          .where((note) =>
+              note.title!
+                  .toLowerCase()
+                  .contains(searchController.text.toLowerCase()) ||
+              note.note!
+                  .toLowerCase()
+                  .contains(searchController.text..toLowerCase()))
+          .toList();
+    } else {
+      notes = allNotes;
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Notes"),
@@ -39,7 +56,7 @@ class _HomePageState extends State<HomePage> {
             Note note = result;
             // if one of title or note is not empty, add it to notes list
             if (note.title!.isNotEmpty || note.note!.isNotEmpty) {
-              notes.add(result);
+              notes.insert(0, result);
               setState(() {});
             }
           }
@@ -59,6 +76,11 @@ class _HomePageState extends State<HomePage> {
                 controller: searchController,
                 focusNode: searchFocusNode,
                 onChanged: (value) {
+                  if (value.isNotEmpty) {
+                    isSearching = true;
+                  } else {
+                    isSearching = false;
+                  }
                   setState(() {});
                 },
                 textAlignVertical: TextAlignVertical.center,
@@ -93,7 +115,9 @@ class _HomePageState extends State<HomePage> {
                 ? Expanded(
                     child: Center(
                       child: Text(
-                        " You haven't added a note yet,\nPress + to add a note.",
+                        isSearching
+                            ? "Note not found"
+                            : " You haven't added a note yet,\nPress + to add a note.",
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -103,7 +127,32 @@ class _HomePageState extends State<HomePage> {
                       itemCount: notes.length,
                       itemBuilder: (context, index) => Card(
                         child: ListTile(
-                          onTap: () {},
+                          onTap: () async {
+                            var result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => NotePage(
+                                          note: notes[index],
+                                        )));
+
+                            if (result != null) {
+                              // result is of type Map<String,dynamic>
+                              if (result["note"] != null) {
+                                Note updatedNote = result["note"];
+                                if (updatedNote.title != notes[index].title ||
+                                    updatedNote.note != notes[index].note) {
+                                  // remove the old note
+                                  allNotes.remove(notes[index]);
+                                  // add the updated note into top
+                                  allNotes.insert(0, updatedNote);
+                                }
+                              } else if (result["delete"] != null) {
+                                // remove the note
+                                allNotes.remove(notes[index]);
+                              }
+                              setState(() {});
+                            }
+                          },
                           minVerticalPadding: 10.0,
                           title: Text(notes[index].title ?? ""),
                           subtitle: Text(
