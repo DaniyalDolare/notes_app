@@ -56,6 +56,7 @@ class NotePage extends StatelessWidget {
           TextButton(
             onPressed: () {
               var note = Note(
+                  id: this.note.id,
                   title: titleController.text,
                   note: noteController.text,
                   updatedAt: DateTime.now());

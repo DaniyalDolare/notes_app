@@ -1,6 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:notes_app/models/note.dart';
+import 'package:notes_app/services/database_service.dart';
 import 'package:notes_app/views/pages/add_note_page.dart';
+import 'package:notes_app/views/pages/auth/login_page.dart';
 import 'package:notes_app/views/pages/note_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -14,10 +17,18 @@ class _HomePageState extends State<HomePage> {
   final searchController = TextEditingController();
   final searchFocusNode = FocusNode();
   bool isSearching = false;
-  List<Note> allNotes = [
-    Note(title: "Note 1", note: "This is note 1", updatedAt: DateTime.now()),
-    Note(title: "Note 2", note: "This is note 2", updatedAt: DateTime.now()),
-  ];
+  List<Note> allNotes = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // fetch the data from database
+    DatabaseService.getNotes().then((value) {
+      value.sort((a, b) => b.updatedAt!.compareTo(a.updatedAt!));
+      allNotes = value;
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +54,15 @@ class _HomePageState extends State<HomePage> {
         foregroundColor: Colors.black,
         elevation: 0,
         centerTitle: true,
+        actions: [
+          IconButton(
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
+                Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (context) => LoginPage()));
+              },
+              icon: Icon(Icons.logout))
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
@@ -56,6 +76,9 @@ class _HomePageState extends State<HomePage> {
             Note note = result;
             // if one of title or note is not empty, add it to notes list
             if (note.title!.isNotEmpty || note.note!.isNotEmpty) {
+              // Save note to database
+              var id = DatabaseService.saveNote(note);
+              note.id = id;
               notes.insert(0, result);
               setState(() {});
             }
@@ -145,9 +168,11 @@ class _HomePageState extends State<HomePage> {
                                   allNotes.remove(notes[index]);
                                   // add the updated note into top
                                   allNotes.insert(0, updatedNote);
+                                  DatabaseService.updateNote(updatedNote);
                                 }
                               } else if (result["delete"] != null) {
                                 // remove the note
+                                DatabaseService.deleteNote(notes[index].id!);
                                 allNotes.remove(notes[index]);
                               }
                               setState(() {});
@@ -170,3 +195,35 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+
+// STRUCTURE OF DATA IN REALTIME DB FIREBASE
+// "dbname":{
+//   "user1":{
+//     // user1 data
+//     "nkfyf6s786786":null{
+//       "title":"Note 1",
+//       "note":"Note 1",
+//       "updatedAt":"Note 1"
+//     },
+//     "nkfyf6s2376434":{
+//       "title":"Note 2",
+//       "note":"Note 2",
+//       "updatedAt":"Note 2"
+//     }
+//   },
+//   "user2":{
+//     //user 2 data
+//     {
+//     // user1 data
+//     "nkfyf6s786786":{
+//       "title":"Note 1",
+//       "note":"Note 1",
+//       "updatedAt":"Note 1"
+//     },
+//     "nkfyf6s2376434":{
+//       "title":"Note 2",
+//       "note":"Note 2",
+//       "updatedAt":"Note 2"
+//     }
+//   }
+// }
